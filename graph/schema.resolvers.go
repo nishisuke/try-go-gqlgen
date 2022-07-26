@@ -17,14 +17,9 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	subfriend := model.User{
-		ID:   "sub",
-		Name: "subfriend",
-	}
 	friend := model.User{
 		ID:      "fri",
 		Name:    "friend",
-		Friends: []*model.User{&subfriend},
 	}
 	user := model.User{
 		ID:      "userid",
@@ -40,7 +35,12 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 
 // Friends is the resolver for the friends field.
 func (r *userResolver) Friends(ctx context.Context, obj *model.User) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return []*model.User{
+		{
+			ID:   "sub",
+			Name: fmt.Sprintf("sub>%s", obj.Name),
+		},
+	}, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
