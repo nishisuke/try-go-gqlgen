@@ -17,7 +17,25 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented"))
+	subfriend := model.User{
+		ID:   "sub",
+		Name: "subfriend",
+	}
+	friend := model.User{
+		ID:      "fri",
+		Name:    "friend",
+		Friends: []*model.User{&subfriend},
+	}
+	user := model.User{
+		ID:      "userid",
+		Name:    "hey",
+		Friends: []*model.User{&friend, &friend},
+	}
+	return []*model.Todo{
+		{ID: "2", Text: "Wash", Done: false, User: &user},
+		{ID: "3", Text: "Clean", Done: false, User: &user},
+		{ID: "4", Text: "Eat", Done: true, User: &user},
+	}, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
