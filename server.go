@@ -3,6 +3,7 @@ package main
 import (
 	"example/graph"
 	"example/graph/generated"
+	"example/graph/storage"
 	"log"
 	"net/http"
 	"os"
@@ -21,8 +22,10 @@ func main() {
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 
+	l := storage.NewLoaders()
+
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	http.Handle("/query", storage.Middleware(l, srv))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
