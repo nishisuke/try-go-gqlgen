@@ -7,6 +7,7 @@ import (
 	"context"
 	"example/graph/generated"
 	"example/graph/model"
+	"example/graph/storage"
 	"fmt"
 )
 
@@ -18,8 +19,8 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 	friend := model.User{
-		ID:      "fri",
-		Name:    "friend",
+		ID:   "fri",
+		Name: "friend",
 	}
 	user := model.User{
 		ID:      "userid",
@@ -35,12 +36,8 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 
 // Friends is the resolver for the friends field.
 func (r *userResolver) Friends(ctx context.Context, obj *model.User) ([]*model.User, error) {
-	return []*model.User{
-		{
-			ID:   "sub",
-			Name: fmt.Sprintf("sub>%s", obj.Name),
-		},
-	}, nil
+	friendIDs := []string{"friA", "friB"}
+	return storage.GetUser(ctx, friendIDs)
 }
 
 // Mutation returns generated.MutationResolver implementation.
