@@ -4,6 +4,8 @@ package storage
 import (
 	"context"
 	"net/http"
+
+	"github.com/graph-gophers/dataloader"
 )
 
 type (
@@ -11,20 +13,17 @@ type (
 )
 
 const (
-	loadersKey = ctxKey("dataloaders")
+	userloadersKey = ctxKey("userKey")
 )
 
-// Middleware injects data loaders into the context
-func Middleware(loaders *Loaders, next http.Handler) http.Handler {
-	// return a middleware that injects the loader to the request context
+func Middleware(userloaders *dataloader.Loader, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		nextCtx := context.WithValue(r.Context(), loadersKey, loaders)
+		nextCtx := context.WithValue(r.Context(), userloadersKey, userloaders)
 		r = r.WithContext(nextCtx)
 		next.ServeHTTP(w, r)
 	})
 }
 
-// For returns the dataloader for a given context
-func For(ctx context.Context) *Loaders {
-	return ctx.Value(loadersKey).(*Loaders)
+func ForUser(ctx context.Context) *dataloader.Loader {
+	return ctx.Value(userloadersKey).(*dataloader.Loader)
 }
