@@ -7,37 +7,21 @@ import (
 	"context"
 	"example/graph/generated"
 	"example/graph/model"
-	"example/graph/storage"
-	"fmt"
 )
 
 // CreateTodo is the resolver for the createTodo field.
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.App.CreateTodo(ctx, input)
 }
 
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	friend := model.User{
-		ID:   "fri",
-		Name: "friend",
-	}
-	user := model.User{
-		ID:      "userid",
-		Name:    "hey",
-		Friends: []*model.User{&friend, &friend},
-	}
-	return []*model.Todo{
-		{ID: "2", Text: "Wash", Done: false, User: &user},
-		{ID: "3", Text: "Clean", Done: false, User: &user},
-		{ID: "4", Text: "Eat", Done: true, User: &user},
-	}, nil
+	return r.App.Todos(ctx)
 }
 
 // Friends is the resolver for the friends field.
 func (r *userResolver) Friends(ctx context.Context, obj *model.User) ([]*model.User, error) {
-	friendIDs := []string{"friA", "friB"}
-	return storage.GetUser(ctx, friendIDs)
+	return r.App.Friends(ctx, obj)
 }
 
 // Mutation returns generated.MutationResolver implementation.
