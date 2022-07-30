@@ -1,7 +1,10 @@
 package main
 
 import (
+	"context"
 	"example/graph"
+	"example/graph/app"
+	"example/graph/db"
 	"example/graph/generated"
 	"example/graph/storage"
 	"log"
@@ -10,6 +13,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"gorm.io/gorm"
 )
 
 const defaultPort = "8080"
@@ -20,9 +24,20 @@ func main() {
 		port = defaultPort
 	}
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	// DB
+	con, err := db.Setup()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	con.AutoMigrate(&db.User{})
 
-	l := storage.NewLoaders()
+	// Graph
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{App: app.App{}}}))
+
+	foo := storage.NewFoo(func(ctx context.Context) *gorm.DB {
+		return con.Debug().WithContext(ctx)
+	})
+	l := storage.NewUsersLoader(foo)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", storage.Middleware(l, srv))
