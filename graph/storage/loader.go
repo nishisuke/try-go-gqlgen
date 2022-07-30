@@ -3,8 +3,9 @@ package storage
 // import graph gophers with your other imports
 import (
 	"context"
-	"errors"
 	"example/graph/db"
+	"example/graph/model"
+	"fmt"
 
 	"github.com/graph-gophers/dataloader"
 )
@@ -13,9 +14,31 @@ type (
 	IGetUsers interface {
 		GetUsers(context.Context, []string) (map[string]db.User, error)
 	}
+	Loader struct {
+		UserLoader *dataloader.Loader
+	}
 )
 
-func NewUsersLoader(l IGetUsers) *dataloader.Loader {
+func (l *Loader) GetUser(ctx context.Context, keys dataloader.Keys) ([]*model.User, error) {
+	thunk := l.UserLoader.LoadMany(ctx, keys)
+	result, errors := thunk()
+	if len(errors) > 0 {
+		return nil, errors[0] // TODO: Join error
+	}
+
+	users := make([]*model.User, len(result))
+	for i, user := range result {
+		c := user.(db.User)
+		users[i] = &model.User{
+			ID:   fmt.Sprintf("%d", c.ID),
+			Name: c.Name,
+		}
+	}
+
+	return users, nil
+}
+
+func NewLoader(l IGetUsers) *Loader {
 	u := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 		um, err := l.GetUsers(ctx, conv(keys))
 
@@ -26,28 +49,7 @@ func NewUsersLoader(l IGetUsers) *dataloader.Loader {
 		return packResult(keys, um)
 	}
 
-	return dataloader.NewBatchedLoader(u)
-}
-
-func conv(keys dataloader.Keys) []string {
-	ids := make([]string, len(keys))
-	for i, k := range keys {
-		ids[i] = k.String()
+	return &Loader{
+		UserLoader: dataloader.NewBatchedLoader(u),
 	}
-	return ids
-}
-
-func packResult[T any](keys dataloader.Keys, look map[string]T) []*dataloader.Result {
-
-	res := make([]*dataloader.Result, len(keys))
-
-	for i, key := range keys {
-		if u, ok := look[key.String()]; ok {
-			res[i] = &dataloader.Result{Data: u}
-		} else {
-			res[i] = &dataloader.Result{Error: errors.New("NotFound")}
-		}
-	}
-
-	return res
 }

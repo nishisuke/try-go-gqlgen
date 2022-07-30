@@ -35,10 +35,10 @@ func main() {
 	// Graph
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{App: app.App{}}}))
 
-	foo := repos.NewUserRepo(func(ctx context.Context) *gorm.DB {
+	useRepo := repos.NewUserRepo(func(ctx context.Context) *gorm.DB {
 		return con.Debug().WithContext(ctx)
 	})
-	l := storage.NewUsersLoader(foo)
+	l := storage.NewLoader(useRepo)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", storage.Middleware(l, srv))
