@@ -6,6 +6,7 @@ import (
 	"example/graph/app"
 	"example/graph/db"
 	"example/graph/generated"
+	"example/graph/repos"
 	"example/graph/storage"
 	"log"
 	"net/http"
@@ -34,7 +35,7 @@ func main() {
 	// Graph
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{App: app.App{}}}))
 
-	foo := storage.NewFoo(func(ctx context.Context) *gorm.DB {
+	foo := repos.NewUserRepo(func(ctx context.Context) *gorm.DB {
 		return con.Debug().WithContext(ctx)
 	})
 	l := storage.NewUsersLoader(foo)
