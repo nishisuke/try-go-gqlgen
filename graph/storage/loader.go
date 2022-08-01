@@ -19,8 +19,8 @@ type (
 	}
 )
 
-func (l *Loader) GetUser(ctx context.Context, keys dataloader.Keys) ([]*model.User, error) {
-	thunk := l.UserLoader.LoadMany(ctx, keys)
+func (l *Loader) GetUser(ctx context.Context, userIDs []string) ([]*model.User, error) {
+	thunk := l.UserLoader.LoadMany(ctx, dataloader.NewKeysFromStrings(userIDs))
 	result, errors := thunk()
 	if len(errors) > 0 {
 		return nil, errors[0] // TODO: Join error

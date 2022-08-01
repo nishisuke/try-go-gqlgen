@@ -3,11 +3,33 @@ package app
 import (
 	"context"
 	"example/graph/model"
-	"example/graph/storage"
 	"fmt"
 )
 
-type App struct {
+type (
+	ctxKey string
+	Foo    interface {
+		GetUser(context.Context, []string) ([]*model.User, error)
+	}
+
+	App struct {
+	}
+)
+
+const (
+	key = ctxKey("loader")
+)
+
+func For(ctx context.Context) Foo {
+	return ctx.Value(key).(Foo)
+}
+
+func StoreLoader(ctx context.Context, l Foo) context.Context {
+	return context.WithValue(ctx, key, l)
+}
+
+func NewApp() App {
+	return App{}
 }
 
 func (a App) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
@@ -34,5 +56,6 @@ func (a App) Todos(ctx context.Context) ([]*model.Todo, error) {
 
 func (a App) Friends(ctx context.Context, obj *model.User) ([]*model.User, error) {
 	friendIDs := []string{"1", "2"}
-	return storage.GetUser(ctx, friendIDs)
+	load := For(ctx)
+	return load.GetUser(ctx, friendIDs)
 }

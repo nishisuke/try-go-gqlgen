@@ -2,36 +2,10 @@ package storage
 
 // import graph gophers with your other imports
 import (
-	"context"
 	"errors"
-	"example/graph/model"
-	"net/http"
 
 	"github.com/graph-gophers/dataloader"
 )
-
-type (
-	ctxKey string
-	Foo    interface {
-		GetUser(context.Context, dataloader.Keys) ([]*model.User, error)
-	}
-)
-
-const (
-	key = ctxKey("loader")
-)
-
-func Middleware(loaders Foo, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		nextCtx := context.WithValue(r.Context(), key, loaders)
-		r = r.WithContext(nextCtx)
-		next.ServeHTTP(w, r)
-	})
-}
-
-func For(ctx context.Context) Foo {
-	return ctx.Value(key).(Foo)
-}
 
 func conv(keys dataloader.Keys) []string {
 	ids := make([]string, len(keys))
@@ -54,9 +28,4 @@ func packResult[T any](keys dataloader.Keys, look map[string]T) []*dataloader.Re
 	}
 
 	return res
-}
-
-func GetUser(ctx context.Context, userIDs []string) ([]*model.User, error) {
-	loaders := For(ctx)
-	return loaders.GetUser(ctx, dataloader.NewKeysFromStrings(userIDs))
 }
