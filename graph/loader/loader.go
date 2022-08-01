@@ -6,9 +6,11 @@ import (
 	"errors"
 	"example/graph/db"
 	"example/graph/model"
+	"example/graph/repos"
 	"fmt"
 
 	"github.com/graph-gophers/dataloader"
+	"gorm.io/gorm"
 )
 
 type (
@@ -36,9 +38,22 @@ func (l *Loader) GetUser(ctx context.Context, userIDs []string) ([]*model.User, 
 	return users, nil
 }
 
-func NewLoader(load func(context.Context, []string) (map[string]db.User, error)) *Loader {
+func NewLoader(con *gorm.DB) *Loader {
+	return &Loader{
+		UserLoader: newBatchedLoader(con),
+	}
+}
+func keysToStrings(keys dataloader.Keys) []string {
+	ids := make([]string, len(keys))
+	for i, k := range keys {
+		ids[i] = k.String()
+	}
+	return ids
+}
+
+func newBatchedLoader(con *gorm.DB) *dataloader.Loader {
 	u := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-		lookup, err := load(ctx, keysToStrings(keys))
+		lookup, err := repos.GetUserMap(con.WithContext(ctx), keysToStrings(keys))
 
 		if err != nil {
 			return []*dataloader.Result{{Error: err}}
@@ -56,15 +71,5 @@ func NewLoader(load func(context.Context, []string) (map[string]db.User, error))
 
 		return res
 	}
-
-	return &Loader{
-		UserLoader: dataloader.NewBatchedLoader(u),
-	}
-}
-func keysToStrings(keys dataloader.Keys) []string {
-	ids := make([]string, len(keys))
-	for i, k := range keys {
-		ids[i] = k.String()
-	}
-	return ids
+	return dataloader.NewBatchedLoader(u)
 }

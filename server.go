@@ -1,13 +1,11 @@
 package main
 
 import (
-	"context"
 	"example/graph"
 	"example/graph/app"
 	"example/graph/db"
 	"example/graph/generated"
 	"example/graph/loader"
-	"example/graph/repos"
 	"log"
 	"net/http"
 	"os"
@@ -34,9 +32,7 @@ func main() {
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 
-	load := loader.NewLoader(func(ctx context.Context, ids []string) (map[string]db.User, error) {
-		return repos.GetUserMap(con.WithContext(ctx), ids)
-	})
+	load := loader.NewLoader(con)
 	http.Handle("/query", middleware(load, srv))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
@@ -46,7 +42,6 @@ func main() {
 func middleware(loader *loader.Loader, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		nextCtx := app.StoreLoader(r.Context(), loader)
-		r = r.WithContext(nextCtx)
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(nextCtx))
 	})
 }
