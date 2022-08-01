@@ -12,6 +12,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"gorm.io/gorm"
 )
 
 const defaultPort = "8080"
@@ -32,16 +33,15 @@ func main() {
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 
-	load := loader.NewLoader(con)
-	http.Handle("/query", middleware(load, srv))
+	http.Handle("/query", middleware(con, srv))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-func middleware(loader *loader.Loader, next http.Handler) http.Handler {
+func middleware(con *gorm.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		nextCtx := app.StoreLoader(r.Context(), loader)
+		nextCtx := app.StoreLoader(r.Context(), loader.NewLoader(con))
 		next.ServeHTTP(w, r.WithContext(nextCtx))
 	})
 }
