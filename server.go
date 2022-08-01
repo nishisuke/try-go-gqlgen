@@ -2,6 +2,7 @@ package main
 
 import (
 	"example/graph"
+	"example/graph/db"
 	"example/graph/generated"
 	"log"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 const defaultPort = "8080"
 
 func main() {
+	setup()
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
@@ -26,4 +28,13 @@ func main() {
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+
+func setup() {
+	// DB
+	con, err := db.Setup()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	con.AutoMigrate(&db.User{})
 }

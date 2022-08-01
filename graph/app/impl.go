@@ -7,9 +7,7 @@ import (
 )
 
 func CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-
 	panic(fmt.Errorf("not implemented"))
-
 	return nil, nil
 }
 func QueryTodos(ctx context.Context) ([]*model.Todo, error) {
