@@ -29,3 +29,9 @@ func QueryFriends(ctx context.Context, obj *model.User) ([]*model.User, error) {
 	friendIDs := []string{"1", "2"} // select user_id from friends where from_id = obj.id
 	return loader.GetUsers(ctx, friendIDs)
 }
+
+func QueryUsers(ctx context.Context) ([]*model.User, error) {
+	loader := ctx.Value(key).(*loader.Loader)
+	allIDs := []string{"1", "2"}
+	return loader.GetUsers(ctx, allIDs)
+}

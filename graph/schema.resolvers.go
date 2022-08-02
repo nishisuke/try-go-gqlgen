@@ -20,6 +20,11 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 	return app.QueryTodos(ctx)
 }
 
+// Users is the resolver for the users field.
+func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
+	return app.QueryUsers(ctx)
+}
+
 // Friends is the resolver for the friends field.
 func (r *userResolver) Friends(ctx context.Context, obj *model.User) ([]*model.User, error) {
 	return app.QueryFriends(ctx, obj)
