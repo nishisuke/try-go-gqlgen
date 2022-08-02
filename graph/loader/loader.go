@@ -19,7 +19,13 @@ type (
 	}
 )
 
-func (l *Loader) GetUser(ctx context.Context, userIDs []string) ([]*model.User, error) {
+func NewLoader(con *gorm.DB) *Loader {
+	return &Loader{
+		UserLoader: newUserLoader(con),
+	}
+}
+
+func (l *Loader) GetUsers(ctx context.Context, userIDs []string) ([]*model.User, error) {
 	thunk := l.UserLoader.LoadMany(ctx, dataloader.NewKeysFromStrings(userIDs))
 	result, errors := thunk()
 	if len(errors) > 0 {
@@ -38,11 +44,6 @@ func (l *Loader) GetUser(ctx context.Context, userIDs []string) ([]*model.User, 
 	return users, nil
 }
 
-func NewLoader(con *gorm.DB) *Loader {
-	return &Loader{
-		UserLoader: newBatchedLoader(con),
-	}
-}
 func keysToStrings(keys dataloader.Keys) []string {
 	ids := make([]string, len(keys))
 	for i, k := range keys {
@@ -51,7 +52,7 @@ func keysToStrings(keys dataloader.Keys) []string {
 	return ids
 }
 
-func newBatchedLoader(con *gorm.DB) *dataloader.Loader {
+func newUserLoader(con *gorm.DB) *dataloader.Loader {
 	u := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 		lookup, err := repos.GetUserMap(con.WithContext(ctx), keysToStrings(keys))
 

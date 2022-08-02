@@ -5,7 +5,6 @@ import (
 	"example/graph/app"
 	"example/graph/db"
 	"example/graph/generated"
-	"example/graph/loader"
 	"log"
 	"net/http"
 	"os"
@@ -24,6 +23,8 @@ func main() {
 		log.Fatalln(err)
 	}
 	con.AutoMigrate(&db.User{})
+
+	// Port
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
@@ -32,7 +33,6 @@ func main() {
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-
 	http.Handle("/query", middleware(con, srv))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
@@ -41,7 +41,7 @@ func main() {
 
 func middleware(con *gorm.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		nextCtx := app.StoreLoader(r.Context(), loader.NewLoader(con))
+		nextCtx := app.StoreLoader(r.Context(), con)
 		next.ServeHTTP(w, r.WithContext(nextCtx))
 	})
 }

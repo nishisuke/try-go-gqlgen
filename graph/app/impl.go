@@ -5,12 +5,14 @@ import (
 	"example/graph/loader"
 	"example/graph/model"
 	"fmt"
+
+	"gorm.io/gorm"
 )
 
 const key = "loader-key"
 
-func StoreLoader(ctx context.Context, loader *loader.Loader) context.Context {
-	return context.WithValue(ctx, key, loader)
+func StoreLoader(ctx context.Context, con *gorm.DB) context.Context {
+	return context.WithValue(ctx, key, loader.NewLoader(con))
 }
 
 func CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
@@ -25,5 +27,5 @@ func QueryTodos(ctx context.Context) ([]*model.Todo, error) {
 func QueryFriends(ctx context.Context, obj *model.User) ([]*model.User, error) {
 	loader := ctx.Value(key).(*loader.Loader)
 	friendIDs := []string{"1", "2"} // select user_id from friends where from_id = obj.id
-	return loader.GetUser(ctx, friendIDs)
+	return loader.GetUsers(ctx, friendIDs)
 }
