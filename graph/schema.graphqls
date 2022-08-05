@@ -12,19 +12,8 @@ type Todo {
 type User {
   id: ID!
   name: String!
-  friends: [User!]!
 }
 
 type Query {
   todos: [Todo!]!
-  users: [User!]!
-}
-
-input NewTodo {
-  text: String!
-  userId: String!
-}
-
-type Mutation {
-  createTodo(input: NewTodo!): Todo!
 }
