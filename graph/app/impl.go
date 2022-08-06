@@ -49,7 +49,7 @@ func QueryTodos(ctx context.Context, first *int, after *string) (*model.TodoConn
 	return &con, nil
 }
 
-func CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
+func CreateTodo(ctx context.Context, input model.NewTodo) (*model.TodoEdge, error) {
 	todo := &model.Todo{
 		ID:   fmt.Sprintf("%s1", arr[len(arr)-1].ID),
 		Text: input.Text,
@@ -57,5 +57,5 @@ func CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
 		User: &model.User{ID: "usera", Name: "usera"}}
 
 	arr = append(arr, todo)
-	return todo, nil
+	return &model.TodoEdge{Node: todo}, nil
 }
