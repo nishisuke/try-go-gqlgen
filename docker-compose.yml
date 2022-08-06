@@ -10,6 +10,8 @@ services:
       - .env
     volumes:
       - ./:/home/app
+    depends_on:
+      - db
   db:
     container_name: example-go-graphql-mysql
     image: mysql:8
