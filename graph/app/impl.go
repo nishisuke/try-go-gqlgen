@@ -34,8 +34,19 @@ var (
 func StoreLoader(ctx context.Context, con *gorm.DB) context.Context {
 	return context.WithValue(ctx, key, loader.NewLoader(con))
 }
-func QueryTodos(ctx context.Context) ([]*model.Todo, error) {
-	return arr, nil
+
+func QueryTodos(ctx context.Context, first *int, after *string) (*model.TodoConnection, error) {
+	edges := make([]*model.TodoEdge, len(arr))
+	for i, a := range arr {
+		edges[i] = &model.TodoEdge{
+			Node: a, Cursor: a.ID,
+		}
+	}
+	con := model.TodoConnection{
+		Edges:    edges,
+		PageInfo: &model.PageInfo{},
+	}
+	return &con, nil
 }
 
 func CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {

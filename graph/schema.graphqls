@@ -15,7 +15,23 @@ type User {
 }
 
 type Query {
-  todos: [Todo!]!
+  todos(first: Int, after: String): TodoConnection!
+}
+
+type TodoConnection {
+  edges: [TodoEdge!]!
+  pageInfo: PageInfo!
+}
+type TodoEdge {
+  cursor: String!
+  node: Todo!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
 }
 
 input NewTodo {
