@@ -13,7 +13,7 @@ type Todo {
 type User {
   id: ID!
   name: String!
-  todos: [Todo!]!
+  todos(first: Int, after: String): TodoConnection!
 }
 
 type Query {

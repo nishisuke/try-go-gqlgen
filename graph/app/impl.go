@@ -130,3 +130,68 @@ func User(ctx context.Context, obj *model.Todo) (*model.User, error) {
 	load := ctx.Value(key).(*loader.Loader)
 	return load.GetUser(ctx, obj.UserID)
 }
+
+func Todos(ctx context.Context, obj *model.User, first *int, after *string) (*model.TodoConnection, error) {
+	decoded, err := shared.DecodeCursor(&obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	con := ctx.Value(dbkey).(*gorm.DB)
+
+	limit := defaultLimit
+	if first != nil {
+		limit = *first
+	}
+
+	var res []db.Todo
+	if after == nil {
+		err := con.Model(&db.Todo{}).Where(&db.Todo{UserID: uint(decoded)}).Order("id asc").Limit(limit).Find(&res).Error
+
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		decoded, err := shared.DecodeCursor(after)
+		if err != nil {
+			return nil, err
+		}
+		err = con.Model(&db.Todo{}).Where(&db.Todo{UserID: uint(decoded)}).Where("id > ?", decoded).Order("id asc").Limit(limit).Find(&res).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+	if len(res) == 0 {
+		p, err := emptyTodoPageInfo(con, after)
+		if err != nil {
+			return nil, err
+		}
+		return &model.TodoConnection{PageInfo: p}, nil
+	}
+
+	edges := make([]*model.TodoEdge, len(res))
+	for i, todo := range res {
+		edges[i] = todoEdge(todo)
+	}
+
+	var hasPre []db.Todo
+	var hasNex []db.Todo
+	err = con.Model(&db.Todo{}).Where(&db.Todo{UserID: uint(decoded)}).Where("id < ?", res[0].ID).Order("id asc").Limit(1).Find(&hasPre).Error
+	if err != nil {
+		return nil, err
+	}
+	err = con.Model(&db.Todo{}).Where(&db.Todo{UserID: uint(decoded)}).Where("id > ?", res[len(res)-1].ID).Order("id asc").Limit(1).Find(&hasNex).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.TodoConnection{
+		Edges: edges,
+		PageInfo: &model.PageInfo{
+			EndCursor:       shared.EncodeCursor("todos", res[len(res)-1].ID),
+			HasNextPage:     len(hasNex) > 0,
+			HasPreviousPage: len(hasPre) > 0,
+			StartCursor:     shared.EncodeCursor("todos", res[0].ID),
+		},
+	}, nil
+}
