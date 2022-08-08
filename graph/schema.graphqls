@@ -13,6 +13,7 @@ type Todo {
 type User {
   id: ID!
   name: String!
+  todos: [Todo!]!
 }
 
 type Query {
