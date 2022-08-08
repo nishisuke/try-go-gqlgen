@@ -3,7 +3,9 @@ package app
 import (
 	"context"
 	"example/graph/db"
+	"example/graph/loader"
 	"example/graph/model"
+	"example/internal/shared"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -29,7 +31,7 @@ func QueryTodos(ctx context.Context, first *int, after *string) (*model.TodoConn
 			return nil, err
 		}
 	} else {
-		decoded, err := decodeCursor(after)
+		decoded, err := shared.DecodeCursor(after)
 		if err != nil {
 			return nil, err
 		}
@@ -65,10 +67,10 @@ func QueryTodos(ctx context.Context, first *int, after *string) (*model.TodoConn
 	return &model.TodoConnection{
 		Edges: edges,
 		PageInfo: &model.PageInfo{
-			EndCursor:       encodeCursor("todos", res[len(res)-1].ID),
+			EndCursor:       shared.EncodeCursor("todos", res[len(res)-1].ID),
 			HasNextPage:     len(hasNex) > 0,
 			HasPreviousPage: len(hasPre) > 0,
-			StartCursor:     encodeCursor("todos", res[0].ID),
+			StartCursor:     shared.EncodeCursor("todos", res[0].ID),
 		},
 	}, nil
 }
@@ -76,7 +78,7 @@ func QueryTodos(ctx context.Context, first *int, after *string) (*model.TodoConn
 func emptyTodoPageInfo(con *gorm.DB, after *string) (*model.PageInfo, error) {
 	pre := false
 	if after != nil {
-		decoded, err := decodeCursor(after)
+		decoded, err := shared.DecodeCursor(after)
 		if err != nil {
 			return nil, err
 		}
@@ -97,12 +99,13 @@ func emptyTodoPageInfo(con *gorm.DB, after *string) (*model.PageInfo, error) {
 }
 
 func todoEdge(todo db.Todo) *model.TodoEdge {
-	cur := encodeCursor("todos", todo.ID)
+	cur := shared.EncodeCursor("todos", todo.ID)
 	return &model.TodoEdge{
 		Node: &model.Todo{
-			ID:   *cur,
-			Text: fmt.Sprintf("%d %s", todo.ID, todo.Text),
-			Done: todo.Done,
+			ID:     *cur,
+			Text:   fmt.Sprintf("%d %s", todo.ID, todo.Text),
+			Done:   todo.Done,
+			UserID: *shared.EncodeCursor("users", todo.UserID),
 		}, Cursor: *cur,
 	}
 }
@@ -121,4 +124,9 @@ func CreateTodo(ctx context.Context, input model.NewTodo) (*model.TodoEdge, erro
 	}
 
 	return todoEdge(*todo), nil
+}
+
+func User(ctx context.Context, obj *model.Todo) (*model.User, error) {
+	load := ctx.Value(key).(*loader.Loader)
+	return load.GetUser(ctx, obj.UserID)
 }

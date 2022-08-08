@@ -8,7 +8,6 @@ import (
 	"example/graph/app"
 	"example/graph/generated"
 	"example/graph/model"
-	"fmt"
 )
 
 // CreateTodo is the resolver for the createTodo field.
@@ -23,7 +22,7 @@ func (r *queryResolver) Todos(ctx context.Context, first *int, after *string) (*
 
 // User is the resolver for the user field.
 func (r *todoResolver) User(ctx context.Context, obj *model.Todo) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return app.User(ctx, obj)
 }
 
 // Mutation returns generated.MutationResolver implementation.

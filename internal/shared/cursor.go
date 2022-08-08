@@ -1,4 +1,4 @@
-package app
+package shared
 
 import (
 	"encoding/base64"
@@ -10,7 +10,7 @@ import (
 
 var validCursor = regexp.MustCompile(`.+,(\d+)`)
 
-func decodeCursor(c *string) (int, error) {
+func DecodeCursor(c *string) (int, error) {
 	if c == nil {
 		return 0, errors.New("nil cursor")
 	}
@@ -27,9 +27,9 @@ func decodeCursor(c *string) (int, error) {
 		return 0, errors.New("error id not number")
 	}
 	return id, nil
-
 }
-func encodeCursor(table string, id uint) *string {
+
+func EncodeCursor(table string, id uint) *string {
 	c := fmt.Sprintf("%s,%d", table, id)
 	e := base64.StdEncoding.EncodeToString([]byte(c))
 	return &e

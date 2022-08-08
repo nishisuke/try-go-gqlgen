@@ -2,12 +2,12 @@ package repos
 
 import (
 	"example/graph/db"
-	"fmt"
+	"example/internal/shared"
 
 	"gorm.io/gorm"
 )
 
-func GetUserMap(con *gorm.DB, ids []string) (map[string]db.User, error) {
+func GetUserMap(con *gorm.DB, ids []uint) (map[string]db.User, error) {
 	var users []db.User
 	err := con.Find(&users, ids).Error
 	if err != nil {
@@ -16,7 +16,7 @@ func GetUserMap(con *gorm.DB, ids []string) (map[string]db.User, error) {
 
 	res := make(map[string]db.User)
 	for _, u := range users {
-		res[fmt.Sprintf("%d", u.ID)] = u
+		res[*shared.EncodeCursor("users", u.ID)] = u
 	}
 
 	return res, nil
