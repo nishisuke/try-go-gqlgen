@@ -21,6 +21,7 @@ type Query {
 }
 
 type TodoConnection {
+  totalCount: Int!
   edges: [TodoEdge!]!
   pageInfo: PageInfo!
 }

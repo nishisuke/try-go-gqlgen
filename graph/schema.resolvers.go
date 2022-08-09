@@ -25,6 +25,11 @@ func (r *todoResolver) User(ctx context.Context, obj *model.Todo) (*model.User, 
 	return app.User(ctx, obj)
 }
 
+// TotalCount is the resolver for the totalCount field.
+func (r *todoConnectionResolver) TotalCount(ctx context.Context, obj *model.TodoConnection) (int, error) {
+	return app.TotalCount(ctx, obj)
+}
+
 // Todos is the resolver for the todos field.
 func (r *userResolver) Todos(ctx context.Context, obj *model.User, first *int, after *string) (*model.TodoConnection, error) {
 	return app.Todos(ctx, obj, first, after)
@@ -39,10 +44,16 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 // Todo returns generated.TodoResolver implementation.
 func (r *Resolver) Todo() generated.TodoResolver { return &todoResolver{r} }
 
+// TodoConnection returns generated.TodoConnectionResolver implementation.
+func (r *Resolver) TodoConnection() generated.TodoConnectionResolver {
+	return &todoConnectionResolver{r}
+}
+
 // User returns generated.UserResolver implementation.
 func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type todoResolver struct{ *Resolver }
+type todoConnectionResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }

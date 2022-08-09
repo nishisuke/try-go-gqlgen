@@ -23,8 +23,9 @@ type Todo struct {
 }
 
 type TodoConnection struct {
-	Edges    []*TodoEdge `json:"edges"`
-	PageInfo *PageInfo   `json:"pageInfo"`
+	TotalCount int         `json:"totalCount"`
+	Edges      []*TodoEdge `json:"edges"`
+	PageInfo   *PageInfo   `json:"pageInfo"`
 }
 
 type TodoEdge struct {

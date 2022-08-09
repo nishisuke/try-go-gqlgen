@@ -69,3 +69,7 @@ models:
     fields:
       todos:
         resolver: true
+  TodoConnection:
+    fields:
+      totalCount:
+        resolver: true

@@ -34,3 +34,13 @@ func Todos(ctx context.Context, obj *model.User, first *int, after *string) (*mo
 		return d.Where("user_id = ?", decoded)
 	})
 }
+func TotalCount(ctx context.Context, obj *model.TodoConnection) (int, error) {
+	con := ctx.Value(dbkey).(*gorm.DB)
+
+	var count int64
+	err := con.Model(&model.Todo{}).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
