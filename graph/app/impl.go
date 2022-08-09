@@ -4,34 +4,43 @@ import (
 	"context"
 	"example/graph/loader"
 	"example/graph/model"
-	"fmt"
+	"example/graph/usecases"
+	"example/internal/shared"
 
 	"gorm.io/gorm"
 )
 
-const key = "loader-key"
-
-func StoreLoader(ctx context.Context, con *gorm.DB) context.Context {
-	return context.WithValue(ctx, key, loader.NewLoader(con))
+func QueryTodos(ctx context.Context, first *int, after *string) (*model.TodoConnection, error) {
+	u := usecases.TodoConnectionUsecase{}
+	return u.Fetch(ctx, first, after, nil)
 }
 
-func CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented"))
-	return nil, nil
-}
-func QueryTodos(ctx context.Context) ([]*model.Todo, error) {
-	return []*model.Todo{
-		{User: &model.User{}},
-	}, nil
-}
-func QueryFriends(ctx context.Context, obj *model.User) ([]*model.User, error) {
-	loader := ctx.Value(key).(*loader.Loader)
-	friendIDs := []string{"1", "2"} // select user_id from friends where from_id = obj.id
-	return loader.GetUsers(ctx, friendIDs)
+func CreateTodo(ctx context.Context, input model.NewTodo) (*model.TodoEdge, error) {
+	return usecases.TodoCreateUsecase{}.Create(ctx, input)
 }
 
-func QueryUsers(ctx context.Context) ([]*model.User, error) {
-	loader := ctx.Value(key).(*loader.Loader)
-	allIDs := []string{"1", "2"}
-	return loader.GetUsers(ctx, allIDs)
+func User(ctx context.Context, obj *model.Todo) (*model.User, error) {
+	load := ctx.Value(key).(*loader.Loader)
+	return load.GetUser(ctx, obj.UserID)
+}
+
+func Todos(ctx context.Context, obj *model.User, first *int, after *string) (*model.TodoConnection, error) {
+	decoded, err := shared.DecodeCursor(&obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	u := usecases.TodoConnectionUsecase{}
+	return u.Fetch(ctx, first, after, func(d *gorm.DB) *gorm.DB {
+		return d.Where("user_id = ?", decoded)
+	})
+}
+func TotalCount(ctx context.Context, obj *model.TodoConnection) (int, error) {
+	con := ctx.Value(dbkey).(*gorm.DB)
+
+	var count int64
+	err := con.Model(&model.Todo{}).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
 }

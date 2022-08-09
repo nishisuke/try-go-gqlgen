@@ -7,17 +7,34 @@ type Todo {
   text: String!
   done: Boolean!
   user: User!
+  userID: ID!
 }
 
 type User {
   id: ID!
   name: String!
-  friends: [User!]!
+  todos(first: Int, after: String): TodoConnection!
 }
 
 type Query {
-  todos: [Todo!]!
-  users: [User!]!
+  todos(first: Int, after: String): TodoConnection!
+}
+
+type TodoConnection {
+  totalCount: Int!
+  edges: [TodoEdge!]!
+  pageInfo: PageInfo!
+}
+type TodoEdge {
+  cursor: String!
+  node: Todo!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
 }
 
 input NewTodo {
@@ -26,5 +43,5 @@ input NewTodo {
 }
 
 type Mutation {
-  createTodo(input: NewTodo!): Todo!
+  createTodo(input: NewTodo!): TodoEdge!
 }

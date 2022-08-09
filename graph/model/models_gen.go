@@ -7,15 +7,34 @@ type NewTodo struct {
 	UserID string `json:"userId"`
 }
 
+type PageInfo struct {
+	EndCursor       *string `json:"endCursor"`
+	HasNextPage     bool    `json:"hasNextPage"`
+	HasPreviousPage bool    `json:"hasPreviousPage"`
+	StartCursor     *string `json:"startCursor"`
+}
+
 type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
+	ID     string `json:"id"`
+	Text   string `json:"text"`
+	Done   bool   `json:"done"`
+	User   *User  `json:"user"`
+	UserID string `json:"userID"`
+}
+
+type TodoConnection struct {
+	TotalCount int         `json:"totalCount"`
+	Edges      []*TodoEdge `json:"edges"`
+	PageInfo   *PageInfo   `json:"pageInfo"`
+}
+
+type TodoEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *Todo  `json:"node"`
 }
 
 type User struct {
-	ID      string  `json:"id"`
-	Name    string  `json:"name"`
-	Friends []*User `json:"friends"`
+	ID    string          `json:"id"`
+	Name  string          `json:"name"`
+	Todos *TodoConnection `json:"todos"`
 }

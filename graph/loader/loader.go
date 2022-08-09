@@ -7,6 +7,7 @@ import (
 	"example/graph/db"
 	"example/graph/model"
 	"example/graph/repos"
+	"example/internal/shared"
 	"fmt"
 
 	"github.com/graph-gophers/dataloader"
@@ -25,6 +26,19 @@ func NewLoader(con *gorm.DB) *Loader {
 	}
 }
 
+func (l *Loader) GetUser(ctx context.Context, userID string) (*model.User, error) {
+	thunk := l.UserLoader.Load(ctx, dataloader.StringKey(userID))
+	result, err := thunk()
+	if err != nil {
+		return nil, err
+	}
+
+	c := result.(db.User)
+	return &model.User{
+		ID:   *shared.EncodeCursor("users", c.ID),
+		Name: c.Name,
+	}, nil
+}
 func (l *Loader) GetUsers(ctx context.Context, userIDs []string) ([]*model.User, error) {
 	thunk := l.UserLoader.LoadMany(ctx, dataloader.NewKeysFromStrings(userIDs))
 	result, errors := thunk()
@@ -54,7 +68,15 @@ func keysToStrings(keys dataloader.Keys) []string {
 
 func newUserLoader(con *gorm.DB) *dataloader.Loader {
 	u := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-		lookup, err := repos.GetUserMap(con.WithContext(ctx), keysToStrings(keys))
+		ids := make([]uint, len(keys))
+		for i, k := range keys {
+			c := k.String()
+			id, _ := shared.DecodeCursor(&c)
+			// TODO: handle err
+			ids[i] = uint(id)
+		}
+
+		lookup, err := repos.GetUserMap(con.WithContext(ctx), ids)
 
 		if err != nil {
 			return []*dataloader.Result{{Error: err}}
