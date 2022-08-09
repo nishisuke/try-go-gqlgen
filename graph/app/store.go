@@ -17,5 +17,5 @@ func StoreLoader(ctx context.Context, con *gorm.DB) context.Context {
 }
 
 func StoreDB(ctx context.Context, con *gorm.DB) context.Context {
-	return context.WithValue(ctx, dbkey, con.WithContext(ctx).Debug())
+	return context.WithValue(ctx, dbkey, con.WithContext(ctx))
 }

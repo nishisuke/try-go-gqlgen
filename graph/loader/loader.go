@@ -76,7 +76,7 @@ func newUserLoader(con *gorm.DB) *dataloader.Loader {
 			ids[i] = uint(id)
 		}
 
-		lookup, err := repos.GetUserMap(con.WithContext(ctx).Debug(), ids)
+		lookup, err := repos.GetUserMap(con.WithContext(ctx), ids)
 
 		if err != nil {
 			return []*dataloader.Result{{Error: err}}
