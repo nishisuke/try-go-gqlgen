@@ -48,7 +48,7 @@ func main() {
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(conf))
 	// srv.Use(extension.FixedComplexityLimit(850)) // Adjust
-	srv.Use(depth.NewFixedMaxDepthLimit(4)) // Adjust
+	srv.Use(depth.NewFixedMaxDepthLimit(5))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", middleware(con, srv))
