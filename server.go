@@ -1,6 +1,7 @@
 package main
 
 import (
+	"example/depth"
 	"example/graph"
 	"example/graph/app"
 	"example/graph/db"
@@ -22,7 +23,10 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	con.AutoMigrate(&db.User{})
+	con.AutoMigrate(
+		&db.User{},
+		&db.Todo{},
+	)
 
 	// Port
 	port := os.Getenv("PORT")
@@ -30,7 +34,21 @@ func main() {
 		port = defaultPort
 	}
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	conf := generated.Config{Resolvers: &graph.Resolver{}}
+	//conf.Complexity.Query.Todos = func(childComplexity int, first *int, after *string) int {
+	//	if first == nil {
+	//		return childComplexity // TODO: Adjust
+	//	} else {
+	//		return childComplexity * *first // TODO: Adjust
+	//	}
+	//}
+	//conf.Complexity.Todo.User = func(childComplexity int) int {
+	//	return childComplexity * 2 // TODO: Adjust
+	//}
+
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(conf))
+	// srv.Use(extension.FixedComplexityLimit(850)) // Adjust
+	srv.Use(depth.NewFixedMaxDepthLimit(4)) // Adjust
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", middleware(con, srv))
@@ -42,6 +60,7 @@ func main() {
 func middleware(con *gorm.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		nextCtx := app.StoreLoader(r.Context(), con)
+		nextCtx = app.StoreDB(nextCtx, con)
 		next.ServeHTTP(w, r.WithContext(nextCtx))
 	})
 }

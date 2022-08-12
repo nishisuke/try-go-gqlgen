@@ -1,4 +1,4 @@
-package gqlgendepth
+package depth
 
 import (
 	"github.com/vektah/gqlparser/v2/ast"

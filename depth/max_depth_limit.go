@@ -1,4 +1,4 @@
-package gqlgendepth
+package depth
 
 import (
 	"context"
