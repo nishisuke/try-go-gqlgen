@@ -28,10 +28,7 @@ func walk(selection ast.Selection) int {
 	case *ast.Field:
 		return maxDepth(typed.SelectionSet)
 		//case *ast.FragmentSpread:
-		//	complexity = safeAdd(complexity, cw.recursiveWalk(s.Definition.SelectionSet))
-
 		//case *ast.InlineFragment:
-		//	complexity = safeAdd(complexity, cw.recursiveWalk(s.SelectionSet))
 	default:
 		panic("Not implemented")
 	}
